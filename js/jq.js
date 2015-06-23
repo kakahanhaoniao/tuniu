@@ -61,7 +61,7 @@
             for(var i=0;i<cloneElements.length;i++){
                 var temClass=cloneElements[i].getAttribute('class');
                 if(!temClass)continue;
-                var aClass=this.trim(temClass);
+                var aClass=Jq.trim(temClass);
                 // var reg=new RegExp('\\b'+className+'\\b');
                 var reg=new RegExp('\(\^\|\\s+\)\\b'+className+'\\b','g');
                 if(aClass && aClass.match(reg)){                
@@ -106,6 +106,9 @@
                         case '#':
                             temElement.push.apply(temElement,this.getEleById(tagname.substring(1),this.element[i]));
                             break;
+                        case '[':
+                            temElement.push.apply(temElement,this.getEleByAttr(tagname.substring(1,tagname.length-1),this.element[i]));
+                            break;
                         default:
                             temElement.push.apply(temElement,this.getEleByName(tagname,this.element[i]));
                     }
@@ -118,6 +121,12 @@
         eq:function(index){
             if(index<0 || isNaN(index)) return null;
             var ele=this.element.length?this.element[index]:null;
+            var newObj=this.delNumEle();
+            ele?newObj.objPush(ele):null;
+            return newObj;
+        },
+        parent:function(){
+            ele=this.element[0].parentNode;
             var newObj=this.delNumEle();
             ele?newObj.objPush(ele):null;
             return newObj;
@@ -135,10 +144,6 @@
                 parent.push(document);
             }        
             return parent;
-        },
-        // 去除字符串左右两侧空格
-        trim:function(str){
-            return str.replace(/^\s+|\s+$/,'');
         },
         // 将查找到的dom加入到this对象中，同时更新element
         objPush:function(aobj){
@@ -191,6 +196,7 @@
                for(var i=0;i<this.length;i++){
                     this.element[i].style[attr]=value;
                 } 
+                return this;
             }else if(this.length==1){
                 return this.getStyle(this.element[0],attr);
             }else{
@@ -203,7 +209,7 @@
             var reg=new RegExp('\\b'+name+'\\b');
             for(var i=0;i<this.length;i++){
                if(!this.element[i].className.match(reg)){
-                    this.element[i].className=this.trim(this.element[i].className)+' '+name;
+                    this.element[i].className=Jq.trim(this.element[i].className)+' '+name;
                }
             }
             return this;
@@ -215,9 +221,17 @@
             var allClass='';
             for(var i=0;i<this.length;i++){
                 allClass=this.element[i].className;
-                this.element[i].className=this.trim(allClass.replace(reg,'')).replace(/(\s{2,})/g,' ');
+                this.element[i].className=Jq.trim(allClass.replace(reg,'')).replace(/(\s{2,})/g,' ');
             }
             return this;
+        },
+        hasClass:function(name){
+            if(typeof name=='undefined') throw "样式名称不能为空";
+            var reg=new RegExp('\(\^\|\\s+\)\\b'+name+'\\b','g');
+            if(this.element[0].className.match(reg)){
+                return true;
+            }
+            return false;
         },
         //返回第一个element的所有同级元素的索引值
         index:function(){
@@ -302,6 +316,7 @@
                for(var i=0;i<this.length;i++){
                     this.element[i].value=val;
                } 
+               return this;
             }
         },
         appendChild:function(obj){
@@ -312,6 +327,11 @@
         insertBefore:function(newObj,childObj){
             for(var i=0;i<this.length;i++){
                 this.element[i].insertBefore(newObj, childObj);
+            }
+        },
+        removeChild:function(oldchild){
+            for(var i=0;i<this.length;i++){
+                this.element[i].removeChild(oldchild);
             }
         },
         animate:function(props,times,fx,callback){
@@ -436,6 +456,10 @@
             }
 
             xhr.send(opt.data);
+        },
+        // 去除字符串左右两侧空格
+        trim:function(str){
+            return str.replace(/^\s+|\s+$/,'');
         },
         version:'0.0.1',
         author:'xiaoshao'
